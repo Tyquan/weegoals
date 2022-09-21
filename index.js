@@ -1,28 +1,18 @@
 const { app, BrowserWindow } = require('electron');
-const path = require('path');
 const EventEmitter = require('node:events');
+const window = require('./window/window');
 
-function createWindow()
-{
-    const window = new BrowserWindow({
-        width: 1280,
-        height: 720,
-        webPreferences: {
-            preload: path.join(__dirname, 'public/preload.js')
-        }
-    });
-
-    window.loadFile(path.join(__dirname, 'public/index.html'));
-}
-
+// on electrons app initial load
 app.whenReady()
     .then(() => {
-        createWindow();
 
+        window.createWindow();
+
+        //Open a window if none are open (macOS)
         app.on('activate', () => {
             if (BrowserWindow.getAllWindows().length === 0)
             {
-                createWindow();
+                window.createWindow();
             }
         });
 
@@ -31,3 +21,7 @@ app.whenReady()
         const emitter = new EventEmitter();
         emitter.emit('error', new Error(`Electronjs whenReady() error (createWindow() function error in main.js): \n ${error}`))
     });
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') app.quit()
+})
